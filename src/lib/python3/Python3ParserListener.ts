@@ -1,4 +1,4 @@
-// Generated from /workspace/dt-python-parser/src/grammar/python3/Python3Parser.g4 by ANTLR 4.13.1
+// Generated from Python3Parser.g4 by ANTLR 4.13.1
 
 import {ParseTreeListener} from "antlr4";
 

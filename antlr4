@@ -1,0 +1,39 @@
+#!/bin/bash
+
+cd src
+
+mkdir -p antlr4bin
+cd antlr4bin
+
+if [ ! -f antlr-4.13.1-complete.jar ]; then
+    wget http://www.antlr.org/download/antlr-4.13.1-complete.jar
+fi
+antlr4jar=`pwd`/antlr-4.13.1-complete.jar
+cd ..
+rm -rf lib/python3 > /dev/null 2>&1
+cd grammar
+
+java -jar $antlr4jar -Dlanguage=TypeScript -visitor -listener -o ../lib/python3 *.g4
+
+cp ./base/Python3LexerBase.ts.tpl ../lib/python3/Python3LexerBase.ts
+cp ./base/Python3ParserBase.ts.tpl ../lib/python3/Python3ParserBase.ts
+
+cd ../lib/python3
+
+# replace "?: (ctx: " with "?(ctx?: " in file Python3ParserListener.ts and Python3ParserVisitor.ts
+sed -i 's/: (ctx: /(ctx: /g' Python3ParserListener.ts
+sed -i 's/: (ctx: /(ctx: /g' Python3ParserVisitor.ts
+
+# replace "Context) => void;" with "Context): void;" in file Python3ParserListener.ts
+sed -i 's/Context) => void;/Context): void;/g' Python3ParserListener.ts
+sed -i 's/Context) => Result;/Context): Result;/g' Python3ParserVisitor.ts
+
+# replace "Python3ParserListener.js" => "Python3ParserListener" in file Python3Parser.ts
+# replace "Python3ParserVisitor.js" => "Python3ParserVisitor" in file Python3Parser.ts
+sed -i 's/Python3ParserListener.js/Python3ParserListener/g' Python3Parser.ts
+sed -i 's/Python3ParserVisitor.js/Python3ParserVisitor/g' Python3Parser.ts
+
+# replace "self." with "this." in file Python3Parser.ts
+sed -i 's/self\./this\./g' Python3Parser.ts
+
+

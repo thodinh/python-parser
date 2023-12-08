@@ -1,5 +1,5 @@
 import { CommonToken, Lexer, CharStream, Token } from "antlr4";
-import Python3Parser from './Python3Parser';
+import PythonLexer from './Python3Lexer'
 
 export default abstract class Python3LexerBase extends Lexer {
     tokens: any[];
@@ -33,27 +33,27 @@ export default abstract class Python3LexerBase extends Lexer {
 
     nextToken() {
         // Check if the end-of-file is ahead and there are still some DEDENTS expected.
-        if (this._input.LA(1) === Python3Parser.EOF && this.indents.length) {
+        if (this._input.LA(1) === PythonLexer.EOF && this.indents.length) {
             // Remove any trailing EOF tokens from our buffer.
             this.tokens = this.tokens.filter(function (val) {
-                return val.type !== Python3Parser.EOF;
+                return val.type !== PythonLexer.EOF;
             });
             // First emit an extra line break that serves as the end of the statement.
-            this.emitToken(this.commonToken(Python3Parser.NEWLINE, "\n"));
+            this.emitToken(this.commonToken(PythonLexer.EOF, "\n"));
             // Now emit as much DEDENT tokens as needed.
             while (this.indents.length) {
                 this.emitToken(this.createDedent());
                 this.indents.pop();
             }
             // Put the EOF back on the token stream.
-            this.emitToken(this.commonToken(Python3Parser.EOF, "<EOF>"));
+            this.emitToken(this.commonToken(PythonLexer.EOF, "<EOF>"));
         }
         let next = super.nextToken();
         return this.tokens.length ? this.tokens.shift() : next;
     }
 
     createDedent() {
-        return this.commonToken(Python3Parser.DEDENT, "");
+        return this.commonToken(PythonLexer.DEDENT, "");
     }
 
     getCharIndex() {
@@ -103,7 +103,7 @@ export default abstract class Python3LexerBase extends Lexer {
             // dedents and line breaks.
             this.skip();
         } else {
-            this.emitToken(this.commonToken(Python3Parser.NEWLINE, newLine));
+            this.emitToken(this.commonToken(PythonLexer.NEWLINE, newLine));
 
             let indent = this.getIndentationCount(spaces);
             let previous = this.indents.length ? this.indents[this.indents.length - 1] : 0;
@@ -113,7 +113,7 @@ export default abstract class Python3LexerBase extends Lexer {
                 this.skip();
             } else if (indent > previous) {
                 this.indents.push(indent);
-                this.emitToken(this.commonToken(Python3Parser.INDENT, spaces));
+                this.emitToken(this.commonToken(PythonLexer.INDENT, spaces));
             } else {
                 // Possibly emit more than 1 DEDENT token.
                 while (this.indents.length && this.indents[this.indents.length - 1] > indent) {
@@ -124,4 +124,3 @@ export default abstract class Python3LexerBase extends Lexer {
         }
     }
 }
-

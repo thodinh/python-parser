@@ -6,14 +6,20 @@ import ParserErrorListener, {
    ErrorHandler,
    ParserErrorCollector,
 } from './parserErrorListener';
+import Python3Parser, { RootContext } from '../../lib/python3/Python3Parser';
 
 /**
  * Custom Parser class, subclass needs extends it.
  */
 export default abstract class BasicParser<C = any> {
-   private _parser;
+   // @ts-ignore
+   private _parser: Python3Parser;
 
-   public parse(input: string, errorListener?: ErrorHandler) {
+   public get parser(): Python3Parser {
+      return this._parser;
+   }
+
+   public parse(input: string, errorListener?: ErrorHandler): RootContext {
       const parser = this.createParser(input);
       this._parser = parser;
 
@@ -26,8 +32,8 @@ export default abstract class BasicParser<C = any> {
    }
 
    public validate(input: string): ParserError[] {
-      const lexerError = [];
-      const syntaxErrors = [];
+      const lexerError: ParserError[] = [];
+      const syntaxErrors: ParserError[] = [];
 
       const parser = this.createParser(input);
       this._parser = parser;
@@ -50,7 +56,7 @@ export default abstract class BasicParser<C = any> {
     * Create Parser by lexer
     * @param lexer Lexer
     */
-   public abstract createParserFromLexer(lexer: Lexer);
+   public abstract createParserFromLexer(lexer: Lexer): Python3Parser;
 
    /**
     * Visit parser tree
@@ -63,14 +69,14 @@ export default abstract class BasicParser<C = any> {
     * @param input string
     */
    public getAllTokens(input: string): Token[] {
-      return this.createLexer(input).getAllTokens();
+      return (<any>this.createLexer(input)).getAllTokens();
    }
 
    /**
     * Get Parser instance by input string
     * @param input
     */
-   public createParser(input: string) {
+   public createParser(input: string): Python3Parser {
       const lexer = this.createLexer(input);
       const parser: any = this.createParserFromLexer(lexer);
       // parser.buildParseTrees = true;
@@ -88,7 +94,7 @@ export default abstract class BasicParser<C = any> {
       this._parser = parser;
 
       const tree = parser.root();
-      return tree.toStringTree(parser.ruleNames);
+      return tree.toStringTree(parser.ruleNames, this.parser);
    }
 
    /**

@@ -57,8 +57,6 @@ STRING: STRING_LITERAL | BYTES_LITERAL;
 
 NUMBER: INTEGER | FLOAT_NUMBER | IMAG_NUMBER;
 
-INTEGER: DECIMAL_INTEGER | OCT_INTEGER | HEX_INTEGER | BIN_INTEGER;
-
 AND        : 'and';
 AS         : 'as';
 ASSERT     : 'assert';
@@ -112,23 +110,28 @@ STRING_LITERAL: ( [rR] | [uU] | [fF] | ( [fF] [rR]) | ( [rR] [fF]))? ( SHORT_STR
 /// bytesprefix    ::=  "b" | "B" | "br" | "Br" | "bR" | "BR" | "rb" | "rB" | "Rb" | "RB"
 BYTES_LITERAL: ( [bB] | ( [bB] [rR]) | ( [rR] [bB])) ( SHORT_BYTES | LONG_BYTES);
 
-/// decimalinteger ::=  nonzerodigit digit* | "0"+
-DECIMAL_INTEGER: NON_ZERO_DIGIT DIGIT* | '0'+;
+// https://docs.python.org/3.12/reference/lexical_analysis.html#integer-literals
+fragment INTEGER        : DEC_INTEGER | BIN_INTEGER | OCT_INTEGER | HEX_INTEGER;
+fragment DEC_INTEGER    : NON_ZERO_DIGIT ('_'? DIGIT)* | '0'+ ('_'? '0')*;
+fragment BIN_INTEGER    : '0' ('b' | 'B') ('_'? BIN_DIGIT)+;
+fragment OCT_INTEGER    : '0' ('o' | 'O') ('_'? OCT_DIGIT)+;
+fragment HEX_INTEGER    : '0' ('x' | 'X') ('_'? HEX_DIGIT)+;
+fragment NON_ZERO_DIGIT : [1-9];
+fragment DIGIT          : [0-9];
+fragment BIN_DIGIT      : '0' | '1';
+fragment OCT_DIGIT      : [0-7];
+fragment HEX_DIGIT      : DIGIT | [a-f] | [A-F];
 
-/// octinteger     ::=  "0" ("o" | "O") octdigit+
-OCT_INTEGER: '0' [oO] OCT_DIGIT+;
+// https://docs.python.org/3.12/reference/lexical_analysis.html#floating-point-literals
+fragment FLOAT_NUMBER   : POINT_FLOAT | EXPONENT_FLOAT;
+fragment POINT_FLOAT    : DIGIT_PART? FRACTION | DIGIT_PART '.';
+fragment EXPONENT_FLOAT : (DIGIT_PART | POINT_FLOAT) EXPONENT;
+fragment DIGIT_PART     : DIGIT ('_'? DIGIT)*;
+fragment FRACTION       : '.' DIGIT_PART;
+fragment EXPONENT       : ('e' | 'E') ('+' | '-')? DIGIT_PART;
 
-/// hexinteger     ::=  "0" ("x" | "X") hexdigit+
-HEX_INTEGER: '0' [xX] HEX_DIGIT+;
-
-/// bininteger     ::=  "0" ("b" | "B") bindigit+
-BIN_INTEGER: '0' [bB] BIN_DIGIT+;
-
-/// floatnumber   ::=  pointfloat | exponentfloat
-FLOAT_NUMBER: POINT_FLOAT | EXPONENT_FLOAT;
-
-/// imagnumber ::=  (floatnumber | intpart) ("j" | "J")
-IMAG_NUMBER: ( FLOAT_NUMBER | INT_PART) [jJ];
+// https://docs.python.org/3.12/reference/lexical_analysis.html#imaginary-literals
+fragment IMAG_NUMBER: (FLOAT_NUMBER | DIGIT_PART) ('j' | 'J');
 
 DOT                : '.';
 ELLIPSIS           : '...';
@@ -204,36 +207,6 @@ fragment LONG_STRING_CHAR: ~'\\';
 
 /// stringescapeseq ::=  "\" <any source character>
 fragment STRING_ESCAPE_SEQ: '\\' . | '\\' NEWLINE;
-
-/// nonzerodigit   ::=  "1"..."9"
-fragment NON_ZERO_DIGIT: [1-9];
-
-/// digit          ::=  "0"..."9"
-fragment DIGIT: [0-9];
-
-/// octdigit       ::=  "0"..."7"
-fragment OCT_DIGIT: [0-7];
-
-/// hexdigit       ::=  digit | "a"..."f" | "A"..."F"
-fragment HEX_DIGIT: [0-9a-fA-F];
-
-/// bindigit       ::=  "0" | "1"
-fragment BIN_DIGIT: [01];
-
-/// pointfloat    ::=  [intpart] fraction | intpart "."
-fragment POINT_FLOAT: INT_PART? FRACTION | INT_PART '.';
-
-/// exponentfloat ::=  (intpart | pointfloat) exponent
-fragment EXPONENT_FLOAT: ( INT_PART | POINT_FLOAT) EXPONENT;
-
-/// intpart       ::=  digit+
-fragment INT_PART: DIGIT+;
-
-/// fraction      ::=  "." digit+
-fragment FRACTION: '.' DIGIT+;
-
-/// exponent      ::=  ("e" | "E") ["+" | "-"] digit+
-fragment EXPONENT: [eE] [+-]? DIGIT+;
 
 /// shortbytes     ::=  "'" shortbytesitem* "'" | '"' shortbytesitem* '"'
 /// shortbytesitem ::=  shortbyteschar | bytesescapeseq

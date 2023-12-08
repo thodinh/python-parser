@@ -12,5 +12,5 @@ export default abstract class Python3ParserBase extends Parser {
 
     CannotBeDotLpEq() {
         return true;
-    }   
+    }
 }

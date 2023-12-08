@@ -53,7 +53,7 @@ export class ParserErrorCollector extends ErrorListener<any> {
 export default class ParserErrorListener extends ErrorListener<any> {
    private _errorHandler;
 
-   constructor(errorListener: ErrorHandler) {
+   constructor(errorListener?: ErrorHandler) {
       super();
       this._errorHandler = errorListener;
    }
